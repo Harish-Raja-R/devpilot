@@ -13,8 +13,10 @@ This checkout also includes **DevPilot**, a local AI coding workspace with its o
 - [Security model and limitations](./SECURITY.md)
 - [Testing and validation](./TESTING.md)
 - [Technical demonstration guide](./DEMO_GUIDE.md)
-- [Technical report outline](./TECHNICAL_REPORT_OUTLINE.md)
+- [Technical report draft](./TECHNICAL_REPORT_OUTLINE.md)
 - [Explainer video script](./DEMO_VIDEO_SCRIPT.md)
+- [Submission checklist](./SUBMISSION_CHECKLIST.md)
+- [Interview explanation](./INTERVIEW_EXPLANATION.md)
 
 To run DevPilot, install the optional backend and frontend dependencies, configure `.env` from `.env.example`, then follow [IMPLEMENTATION.md](./IMPLEMENTATION.md). The original `mini` CLI remains available and behaves as documented below.
 

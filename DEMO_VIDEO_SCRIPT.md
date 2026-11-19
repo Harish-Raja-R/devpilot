@@ -1,50 +1,55 @@
 # DevPilot explainer video script
 
-**Target length:** 4–6 minutes
-**Recording note:** The previously verified browser walkthrough used a deterministic local mock provider through LiteLLM, not a real external LLM. If recording that configuration, display a persistent “Local mock provider” label. Do not show credentials.
+**Target length:** approximately 5 minutes (4–6 minutes at a clear speaking pace)
 
-## 0:00–0:25 — Introduction
+**Recording note:** The verified browser walkthrough used a deterministic local OpenAI-compatible mock provider through LiteLLM. It was not a real external LLM. If showing that run, keep a visible “Local mock provider — not a live LLM” disclosure on screen. Never show `.env`, keys, tokens, or authorization headers.
 
-**On screen:** DevPilot workspace and repository title.
+## 0:00–0:35 — Introduction
 
-**Narration:** “DevPilot is a local AI coding workspace. It combines a React and Monaco interface with a FastAPI service, SQLite execution history, and a custom tool-using agent loop. It lives alongside mini-SWE-agent, whose original CLI, source, and license are preserved.”
+**On screen:** Show the DevPilot workspace and title card: “Local AI coding workspace.”
 
-## 0:25–1:10 — Architecture
+**Narration:** “DevPilot is a local coding workspace for turning a natural-language task into reviewed project changes. It combines a React and Monaco interface, a FastAPI backend, SQLite session and event history, and a custom tool-using agent loop. It is developed alongside mini-SWE-agent: the original `mini` CLI, source, license, and attribution remain in the repository. DevPilot does not route its task loop through the upstream `DefaultAgent`.”
 
-**On screen:** [ARCHITECTURE.md](./ARCHITECTURE.md), then the workspace.
+## 0:35–1:15 — Architecture and honest demo disclosure
 
-**Narration:** “A task submitted in the UI is handled by the FastAPI task worker. DevPilot's own `DevPilotAgent` constructs the conversation and sends it through LiteLLM. A separate `ToolRegistry` exposes nine validated tools. LiteLLM is the provider client; it is not the DevPilot execution loop.”
+**On screen:** Briefly show the diagram in [TECHNICAL_REPORT_OUTLINE.md](./TECHNICAL_REPORT_OUTLINE.md), then the application. Keep the mock-provider disclosure visible for the verified run.
 
-## 1:10–2:10 — Task and tool selection
+**Narration:** “The browser sends task and workspace requests to FastAPI and receives activity through a WebSocket. The backend persists sessions, tasks, and events in SQLite. For this recorded calculator run, LiteLLM connected to a temporary local mock endpoint. That lets us demonstrate the real UI, approval, tool, and test path without credentials; it does not verify a paid provider, model compatibility, or live inference.”
 
-**On screen:** Submit the calculator task; show activity and plan.
+## 1:15–2:15 — Think, Act, Observe
 
-**Narration:** “The model can inspect files, read and search, propose writes or edits, run commands or tests, and inspect Git status and diffs. The model's requested tool name and arguments are validated before dispatch. The tool's actual result becomes an observation in the next model request.”
+**On screen:** Submit: “Create a Python calculator with addition, subtraction, multiplication and division, including input validation and unit tests.” Show the visible plan and activity stream.
 
-**On screen:** Activity panel showing `list_files`, file proposal, and approval.
+**Narration:** “The task worker gives `DevPilotAgent` the task, a brief system instruction, and bounded project context. The agent sends the conversation and JSON tool schemas through LiteLLM. Think means the model’s request and returned choice; DevPilot does not expose private chain-of-thought. The model can select one tool for a response. Here it first chooses `list_files`. DevPilot validates the tool name and Pydantic arguments, executes it against the selected workspace, and sends the actual result back as a tool observation. The next request can use that observation to choose what to do next.”
 
-**Narration:** “Here, the model first inspects the workspace. A proposed write pauses for user approval. Once approved, DevPilot writes through its workspace-scoped services and reports the result back to the model.”
+**On screen:** Point at `list_files`, its result, and the next model message.
 
-## 2:10–3:10 — Approvals and test feedback
+**Narration:** “This is the Think–Act–Observe cycle: model decision, bounded tool action, actual observation, then another model request. The loop ends when the model returns a non-empty final response without a tool call, or when an error, cancellation, or execution limit stops it.”
 
-**On screen:** Approve the calculator and test files, then approve pytest; show test output.
+## 2:15–3:20 — Tools, approvals, and test evidence
 
-**Narration:** “Mutating file operations and execution are not silently applied. The user sees the proposed action and approves or rejects it. After pytest runs, its real output is displayed and returned to the model as another observation. In the verified local-mock walkthrough, the calculator suite reported 10 passed. This demonstrates the application workflow; the model endpoint in that run was a mock, not a live provider.”
+**On screen:** Show the file-write approval for `calculator.py`, approve it; then show the test-file proposal and approve it.
 
-## 3:10–3:50 — Cancellation
+**Narration:** “The registry has nine separate tools: list, read, and search files; write and edit files; run an allowed command; run pytest; read Git status; and read Git diff. File writes and edits are not applied when first proposed. The approval card shows the action, and a write is performed only after the user approves. The edit path also checks for one exact match and protects against a concurrent file change.”
 
-**On screen:** A second task pending a file-write approval; click **Stop**.
+**On screen:** Approve the `python -m pytest` request; show the result panel and the created files.
 
-**Narration:** “Cancellation is cooperative. This task is waiting for approval, so cancellation resolves the pending proposal without writing the file. The interface records the cancelled status. A currently running synchronous model request or subprocess may take until its configured timeout to stop.”
+**Narration:** “The test tool requests approval separately. In this previously verified mock-backed UI run, the files were created and pytest reported 10 passed. That is actual pytest output from the workspace. The agent received it as an observation before its final summary. It is evidence for the application flow, not proof that a live model generated the code or that another provider is compatible.”
 
-## 3:50–4:40 — Security and limitations
+## 3:20–3:55 — Cancellation
 
-**On screen:** [SECURITY.md](./SECURITY.md).
+**On screen:** Show the second task paused at file-write approval; click **Stop** and point to the cancelled status.
 
-**Narration:** “Workspace paths and tool inputs are validated. Commands are checked, executed as argv without a shell, bounded by timeouts and output limits, and require approval. Provider keys remain in the backend environment. These are defense-in-depth controls, not an operating-system sandbox: approved project code still runs with the current user's permissions. DevPilot is local-only and should not be exposed publicly.”
+**Narration:** “Cancellation is cooperative. In this verified case the task was waiting for approval; pressing Stop cancelled the pending proposal, and the proposed file was absent afterward. An in-flight synchronous model request or subprocess cannot necessarily be interrupted immediately; it may continue until its configured timeout.”
 
-## 4:40–5:00 — Close
+## 3:55–4:40 — Security and limitations
 
-**On screen:** README and launch instructions.
+**On screen:** Show the relevant section of [SECURITY.md](./SECURITY.md).
 
-**Narration:** “The custom DevPilot engine, tool registry, API integration, frontend, tests, and documentation are in this repository. A real-provider demonstration requires configuring a supported provider and confirming that an actual request succeeds. The automated mocked tests remain available for repeatable, credential-free validation.”
+**Narration:** “Workspace paths are constrained, tool arguments are schema-validated, and commands are policy-checked and run as argv without a shell. File mutations and execution require approval; timeouts and output limits are applied. The API is intended for loopback use and has no multi-user authentication. Most importantly, approval is not an OS sandbox: an approved test or project script still runs with the current user’s permissions. Use an isolated container or VM for untrusted code.”
+
+## 4:40–5:10 — Validation and close
+
+**On screen:** Show test/lint/build results, then the report and checklist. Do not show secrets or private account data.
+
+**Narration:** “The selected DevPilot and upstream parser tests passed: 46 passed and one symlink test was skipped because this host does not permit symlink creation. Ruff and the frontend production build passed. No provider credentials are configured here, so no real LLM request has been made. The repository includes reproducible mocked tests, a technical report, and a submission checklist. DevPilot’s custom loop and approval workflow are demonstrated; live-provider support remains to be verified with an authorized provider.”

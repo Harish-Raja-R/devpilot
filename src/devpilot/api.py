@@ -1,4 +1,4 @@
-"""Local FastAPI application for DevPilot, composed around the mini-SWE-agent engine."""
+"""Local FastAPI application integrating DevPilot's custom agent engine."""
 
 import asyncio
 import hashlib
