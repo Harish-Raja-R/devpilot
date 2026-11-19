@@ -2,7 +2,7 @@
 
 **Target length:** approximately 5 minutes (4–6 minutes at a clear speaking pace)
 
-**Recording note:** The verified browser walkthrough used a deterministic local OpenAI-compatible mock provider through LiteLLM. It was not a real external LLM. If showing that run, keep a visible “Local mock provider — not a live LLM” disclosure on screen. Never show `.env`, keys, tokens, or authorization headers.
+**Recording note:** The verified browser walkthrough used a deterministic local OpenAI-compatible mock provider through LiteLLM. It was not a real external LLM. If showing that run, keep a visible “Local mock provider — not a live LLM” disclosure on screen. A local `.env` exists but is ignored and must not be opened or shown. Never show keys, tokens, or authorization headers.
 
 ## 0:00–0:35 — Introduction
 
@@ -52,4 +52,4 @@
 
 **On screen:** Show test/lint/build results, then the report and checklist. Do not show secrets or private account data.
 
-**Narration:** “The selected DevPilot and upstream parser tests passed: 46 passed and one symlink test was skipped because this host does not permit symlink creation. Ruff and the frontend production build passed. No provider credentials are configured here, so no real LLM request has been made. The repository includes reproducible mocked tests, a technical report, and a submission checklist. DevPilot’s custom loop and approval workflow are demonstrated; live-provider support remains to be verified with an authorized provider.”
+**Narration:** “The selected DevPilot and upstream parser tests passed: 46 passed and one symlink test was skipped because this host does not permit symlink creation. Ruff and the frontend production build passed. No real LLM request has been made, so provider availability and connectivity remain unverified. The repository includes reproducible mocked tests, a technical report, and a submission checklist. DevPilot’s custom loop and approval workflow are demonstrated; live-provider support remains to be verified with an authorized provider.”

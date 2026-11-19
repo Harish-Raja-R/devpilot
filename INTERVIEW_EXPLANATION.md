@@ -2,7 +2,7 @@
 
 ## 60-second overview
 
-“DevPilot is a local AI coding workspace built alongside mini-SWE-agent. The React/Monaco frontend submits tasks to a FastAPI backend, which stores sessions, tasks, and activity events in SQLite and streams updates to the UI. For each task, a custom `DevPilotAgent` sends the system prompt, task, and bounded workspace context to a configured model through LiteLLM. The model chooses from nine structured tools exposed by a Pydantic-validated `ToolRegistry`. The backend executes the selected tool, returns the real result as an observation in the next model request, and repeats until a final response or a configured limit. File changes, commands, and tests require user approval. The DevPilot loop and registry are our application code; LiteLLM and the retained mini-SWE-agent project are dependencies/context, not claims of original authorship. We verified sequential tool behavior and the UI approval/test/cancellation flow with mocks; we have not verified a real provider call because no provider credentials are configured.”
+“DevPilot is a local AI coding workspace built alongside mini-SWE-agent. The React/Monaco frontend submits tasks to a FastAPI backend, which stores sessions, tasks, and activity events in SQLite and streams updates to the UI. For each task, a custom `DevPilotAgent` sends the system prompt, task, and bounded workspace context to a configured model through LiteLLM. The model chooses from nine structured tools exposed by a Pydantic-validated `ToolRegistry`. The backend executes the selected tool, returns the real result as an observation in the next model request, and repeats until a final response or a configured limit. File changes, commands, and tests require user approval. The DevPilot loop and registry are our application code; LiteLLM and the retained mini-SWE-agent project are dependencies/context, not claims of original authorship. We verified sequential tool behavior and the UI approval/test/cancellation flow with mocks. No real provider request has been made, so provider availability and connectivity remain unverified.”
 
 ## If asked how the loop works
 
@@ -22,7 +22,7 @@
 
 ## If asked about evidence
 
-“The selected test run passed 46 tests with one symlink test skipped because this host disallows symlink creation; Ruff and the frontend production build passed. An observation-driven mocked calculator workflow created files, ran pytest, and observed 10 passing tests. The browser flow also used a temporary local mock provider. We have not made a real external LLM request, so I would not claim live-provider verification.”
+“The selected test run passed 46 tests with one symlink test skipped because this host disallows symlink creation; Ruff and the frontend production build passed. An observation-driven mocked calculator workflow created files, ran pytest, and observed 10 passing tests. The browser flow also used a temporary local mock provider. A local `.env` is ignored and was not displayed or committed, but no real external LLM request was made, so I would not claim live-provider verification.”
 
 ## Likely technical questions
 

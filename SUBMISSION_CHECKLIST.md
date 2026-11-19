@@ -26,14 +26,14 @@
 - [x] Original MIT license and attribution are present.
 - [x] `.gitignore` excludes local environment/secrets, virtual environments, dependency folders, and build/database outputs while retaining `.env.example`.
 - [x] The user supplied the existing destination; pre-push `git ls-remote` returned no refs, so there was no remote commit to merge.
-- [x] No repository was created; the existing local `main` history is being preserved.
-- [ ] Configure `origin`, commit the reviewed project changes, push `main` without force, then verify the remote branch and commit.
+- [x] Pushed the reviewed project to `origin/main` without force and verified the remote branch, commit, and expected files.
+- [x] No repository was created; the existing local `main` history was preserved.
 - [x] GitHub CLI (`gh`) is not installed, so account-level authentication/repository discovery was unavailable; the specified destination was checked directly with Git.
 - [x] `.env` and credential values are not intended for publication. Never publish `.env` or credentials.
 
 ## Operational cautions
 
-- [ ] Configure `DEVPILOT_MODEL_NAME` and the matching provider key in a local, ignored `.env` before a live task.
+- [ ] Make a minimal real-provider request using authorized local configuration; validity and connectivity have not been verified. Do not display or publish `.env`.
 - [ ] Use a disposable trusted project for demonstrations; review every file/command/test approval.
 - [ ] Do not expose the loopback API to the public internet. Approval controls do not sandbox code running as the current OS user.
 - [ ] Do not claim provider compatibility, model quality, or live inference until a real request has succeeded.

@@ -4,7 +4,7 @@
 
 The browser-to-API flow was exercised with a temporary local OpenAI-compatible mock provider through LiteLLM. In the actual UI, the calculator task created `calculator.py` and `test_calculator.py`, requested approval for each write and the pytest run, streamed activity updates, and displayed the real pytest output: **10 passed**. A second UI task was cancelled while waiting for write approval; its status became `cancelled` and the proposed file was not written.
 
-No `.env` or provider credential was configured in the inspected workspace, and `.env.example` contains only a placeholder model. No real external LLM request was made. The temporary mock provider used for the browser demonstration is not included in this repository. Do not present the mock run as a live-provider result.
+A local `.env` exists and is ignored by Git; its contents were not displayed or committed. `.env.example` contains a placeholder model and blank API-key field. No real external LLM request was made, so provider configuration and connectivity remain unverified. The temporary mock provider used for the browser demonstration is not included in this repository. Do not present the mock run as a live-provider result.
 
 ## Launch the application
 
@@ -12,7 +12,7 @@ From the repository root in PowerShell, install the optional backend dependencie
 
 ```powershell
 python -m pip install -e ".[devpilot]"
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 Edit `.env` locally: set `DEVPILOT_MODEL_NAME` to the provider-qualified model identifier and set the matching provider API key. Keep the key private and do not commit `.env`. For example, an OpenAI model generally uses `OPENAI_API_KEY`; an Anthropic model generally uses `ANTHROPIC_API_KEY`. Check the selected model's current LiteLLM provider naming before use.

@@ -4,7 +4,7 @@
 
 DevPilot is a local AI coding workspace developed alongside the mini-SWE-agent project. It combines a React/Vite/Monaco interface with a FastAPI backend, SQLite session and event history, LiteLLM provider access, and a custom DevPilot agent loop. The loop exposes nine structured workspace tools through a Pydantic-validated registry and returns tool results to the model as observations. File mutations and command/test execution require user approval.
 
-The submitted implementation has been verified with deterministic mocked model responses and a temporary local OpenAI-compatible mock provider. In the browser demonstration, the agent created a calculator and its tests, obtained approvals, ran pytest, and displayed 10 passing tests. A cancellation demonstration also ended with a cancelled task and no write. These results validate the app/tool/approval path, **not live LLM connectivity**. No provider model or credentials are configured in the inspected environment, and no real provider request has been made.
+The submitted implementation has been verified with deterministic mocked model responses and a temporary local OpenAI-compatible mock provider. In the browser demonstration, the agent created a calculator and its tests, obtained approvals, ran pytest, and displayed 10 passing tests. A cancellation demonstration also ended with a cancelled task and no write. These results validate the app/tool/approval path, **not live LLM connectivity**. A local `.env` file is present and ignored by Git; its values were not displayed or included in the repository. No real provider request has been made, so provider availability and connectivity remain unverified.
 
 ## 1. Problem statement
 
@@ -143,7 +143,8 @@ The selected automated run exercises DevPilot tests plus the upstream tool-call 
 | Mocked calculator agent test | Observation-driven test in `tests/devpilot/test_api.py` | Sequential list/read/write/test actions and model follow-up based on observations; actual pytest output confirmed **10 passed**. No provider credential or external model. |
 | Browser UI integration | Temporary local OpenAI-compatible mock endpoint through LiteLLM | Actual UI task submission, streamed events, approvals, file creation and pytest result (**10 passed**) observed. The endpoint was a mock and its temporary runner is not included. |
 | Browser UI cancellation | Task cancelled while file approval was pending | `cancelled` state observed; proposed file was absent. |
-| Live-provider connectivity | Configuration inspection | `.env` absent; `DEVPILOT_MODEL_NAME`, `MSWEA_MODEL_NAME`, and checked provider credential variables unset; `.env.example` is placeholder-only. **No live provider request was made.** |
+| Live-provider connectivity | Configuration safety check | A local `.env` exists and is ignored; its values were not displayed or published. `.env.example` contains placeholder/blank credential entries. **No live provider request was made, so model/key validity and provider connectivity remain unverified.** |
+| Git publication | Non-force push and remote ref/tree verification | Published the user-specified project to `origin/main`; the destination had no refs at preflight. The remote branch and expected project files were verified, with no `.env`, generated dependencies/builds, local databases, or temporary mock runner. |
 
 The browser demonstration proves the UI/backend/approval path under a local mock. Neither that run nor the automated test establishes real-provider connectivity, model quality, cost, or reliability.
 
@@ -155,11 +156,11 @@ The browser demonstration proves the UI/backend/approval path under a local mock
 4. Make worker state, cancellation, and pending approvals restart-safe if longer sessions require it.
 5. Add configurable cost budgets and provider usage reporting.
 6. Run symlink-path tests on a host that allows symlink creation.
-7. Verify the non-force push to the user-supplied destination and confirm the remote branch/commit. If refs appear before pushing, stop and integrate safely instead of overwriting.
+7. Preserve fast-forward-only delivery for future changes; if remote commits appear, fetch and integrate them safely rather than force-pushing.
 
 ## 11. Conclusion
 
-DevPilot has a distinct, explainable agent loop, a typed nine-tool registry, workspace-scoped operations, explicit approval for mutations and execution, persistent event history, and a live-updating local UI. Selected automated tests, lint, build, and the calculator/cancellation mock demonstrations provide evidence for those application behaviors. Provider connectivity remains unverified because no provider configuration is available. The project is suitable for a transparent technical demonstration of its custom orchestration and approval workflow, provided the mock/live distinction and non-sandbox limitations are stated clearly.
+DevPilot has a distinct, explainable agent loop, a typed nine-tool registry, workspace-scoped operations, explicit approval for mutations and execution, persistent event history, and a live-updating local UI. Selected automated tests, lint, build, and the calculator/cancellation mock demonstrations provide evidence for those application behaviors. Provider connectivity remains unverified because no real provider request has been made. The project is suitable for a transparent technical demonstration of its custom orchestration and approval workflow, provided the mock/live distinction and non-sandbox limitations are stated clearly.
 
 ## Appendix: reproduction
 
@@ -167,8 +168,8 @@ Environment for the validation run: Python 3.11.9, Node.js 22.19.0, npm 10.9.3. 
 
 ```powershell
 python -m pip install -e ".[devpilot]"
-Copy-Item .env.example .env
-# Configure a valid provider model and key locally; never commit .env.
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+# Configure a valid provider model/key locally only if authorized; never commit .env.
 python -m devpilot.run
 ```
 

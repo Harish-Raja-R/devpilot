@@ -12,7 +12,7 @@ From the repository root in PowerShell:
 
 ```powershell
 python -m pip install -e ".[devpilot]"
-Copy-Item .env.example .env
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 Set `DEVPILOT_MODEL_NAME` to a provider-qualified model name and set the matching provider credential in `.env` (for example `OPENAI_API_KEY` for an OpenAI model or `ANTHROPIC_API_KEY` for Anthropic). API credentials are read only by the backend/LiteLLM; they are not sent to the browser. Do not commit `.env`.
