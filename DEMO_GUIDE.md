@@ -20,7 +20,7 @@ Edit `.env` locally: set `DEVPILOT_MODEL_NAME` to the provider-qualified model i
 Start the backend in one terminal:
 
 ```powershell
-devpilot
+python -m devpilot.run
 ```
 
 Start the frontend in a second terminal:

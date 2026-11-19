@@ -28,7 +28,7 @@ npm.cmd run dev
 In another terminal, from the repository root:
 
 ```powershell
-devpilot
+python -m devpilot.run
 ```
 
 The API binds to `127.0.0.1:8000`; the Vite UI binds to `127.0.0.1:5173` and proxies `/api` and WebSocket traffic. Visit `http://127.0.0.1:5173`. FastAPI docs are at `http://127.0.0.1:8000/docs`.
