@@ -194,6 +194,21 @@ def test_websocket_streams_persisted_session_events(api):
     assert streamed["type"] == "session_created"
 
 
+def test_websocket_accepts_configured_frontend_origin(tmp_path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    monkeypatch.setenv("DEVPILOT_FRONTEND_ORIGIN", "http://127.0.0.1:5175")
+    app = create_app(tmp_path / "sessions.sqlite3", enforce_loopback=False)
+    with TestClient(app) as client:
+        session_id = client.post("/api/sessions", json={"workspace": str(workspace)}).json()["id"]
+        with client.websocket_connect(
+            f"/api/sessions/{session_id}/events/ws",
+            headers={"origin": "http://127.0.0.1:5175"},
+        ) as websocket:
+            streamed = websocket.receive_json()
+    assert streamed["type"] == "session_created"
+
+
 def test_file_updates_and_deletes_wait_for_approval(api):
     client, workspace, session_id = api
     original = workspace / "existing.py"
@@ -262,7 +277,8 @@ def test_approved_test_run_executes_workspace_tests(api):
         f"/api/sessions/{session_id}/approvals/{started['test_run_id']}",
         json={"approved": True},
     ).status_code == 200
-    for _ in range(100):
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
         results = client.get(f"/api/sessions/{session_id}/tests").json()
         if results:
             break

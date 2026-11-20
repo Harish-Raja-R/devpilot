@@ -55,6 +55,8 @@ function App() {
   const [sessionId, setSessionId] = useState("");
   const [workspacePath, setWorkspacePath] = useState("");
   const [workspaceInput, setWorkspaceInput] = useState("");
+  const [agentPanelOpen, setAgentPanelOpen] = useState(true);
+  const [workspacePanelOpen, setWorkspacePanelOpen] = useState(false);
   const [files, setFiles] = useState([]);
   const [tabs, setTabs] = useState([]);
   const [documents, setDocuments] = useState({});
@@ -79,21 +81,20 @@ function App() {
   const [notice, setNotice] = useState("");
   const [collapsed, setCollapsed] = useState({});
   const socketRef = useRef(null);
+  const sessionIdRef = useRef("");
   const editorRef = useRef(null);
   const activePathRef = useRef("");
   const documentsRef = useRef({});
   const eventEndRef = useRef(null);
 
-  const activeSession = useMemo(
-    () => sessions.find((session) => session.id === sessionId),
-    [sessions, sessionId],
-  );
   activePathRef.current = activePath;
   documentsRef.current = documents;
   const activeTask = useMemo(
     () => tasks.find((task) => task.status === "running" || task.status === "queued"),
     [tasks],
   );
+  const activeDocument = activePath ? documents[activePath] : null;
+  const hasUnsavedChanges = Boolean(activeDocument && activeDocument.content !== activeDocument.savedContent);
 
   const loadSessions = useCallback(async () => {
     const data = await api("/api/sessions");
@@ -109,13 +110,14 @@ function App() {
       api(`/api/sessions/${id}/approvals`),
       api(`/api/sessions/${id}/git/status`),
     ]);
+    if (sessionIdRef.current !== id) return;
     setFiles(fileData.files);
     setTasks(sessionTasks);
     setEvents(sessionEvents);
     setApprovals(pending.filter((item) => item.status === "pending"));
     setGitStatus(git);
-    setWorkspacePath(activeSession?.workspace || "");
-  }, [activeSession?.workspace]);
+    setWorkspacePath(sessions.find((session) => session.id === id)?.workspace || "");
+  }, [sessions]);
 
   useEffect(() => {
     api("/api/health")
@@ -206,8 +208,16 @@ function App() {
         body: JSON.stringify({ workspace: workspaceInput }),
       });
       await loadSessions();
+      sessionIdRef.current = created.id;
       setSessionId(created.id);
+      setWorkspacePanelOpen(false);
+      setAgentPanelOpen(true);
       setWorkspacePath(created.workspace);
+      setTasks([]);
+      setEvents([]);
+      setApprovals([]);
+      setGitStatus(null);
+      setTaskInput("");
       setTabs([]);
       setDocuments({});
       setActivePath("");
@@ -221,7 +231,17 @@ function App() {
   };
 
   const selectSession = async (id) => {
+    sessionIdRef.current = id;
     setSessionId(id);
+    setWorkspacePanelOpen(false);
+    setAgentPanelOpen(true);
+    setWorkspacePath(sessions.find((session) => session.id === id)?.workspace || "");
+    setFiles([]);
+    setTasks([]);
+    setEvents([]);
+    setApprovals([]);
+    setGitStatus(null);
+    setTaskInput("");
     setTabs([]);
     setDocuments({});
     setActivePath("");
@@ -431,13 +451,37 @@ function App() {
           <span className={`connection ${health}`}><span />{health === "online" ? "Backend connected" : health === "offline" ? "Backend offline" : "Connecting"}</span>
         </div>
         <div className="topbar-actions">
-          <button className="icon-button" title="Refresh workspace" onClick={() => refreshSession(sessionId)} disabled={!sessionId}><RefreshCw size={15} /></button>
+          <button className="icon-button" title="Refresh workspace" aria-label="Refresh workspace" onClick={() => refreshSession(sessionId).catch((cause) => setError(cause.message))} disabled={!sessionId}><RefreshCw size={15} /></button>
+          <button
+            className="icon-button agent-panel-toggle"
+            title="Toggle AI Agent panel"
+            aria-label="Toggle AI Agent panel"
+            aria-expanded={agentPanelOpen}
+            onClick={() => {
+              setAgentPanelOpen((open) => !open);
+              setWorkspacePanelOpen(false);
+            }}
+          >
+            <Activity size={15} />
+          </button>
+          <button
+            className="icon-button workspace-panel-toggle"
+            title="Toggle workspace panel"
+            aria-label="Toggle workspace panel"
+            aria-expanded={workspacePanelOpen}
+            onClick={() => {
+              setWorkspacePanelOpen((open) => !open);
+              setAgentPanelOpen(false);
+            }}
+          >
+            <Folder size={15} />
+          </button>
           <div className="avatar">DP</div>
         </div>
       </header>
 
-      <div className="workbench">
-        <aside className="sidebar left-sidebar">
+      <div className={`workbench ${agentPanelOpen ? "agent-panel-open" : ""} ${workspacePanelOpen ? "workspace-panel-open" : ""}`}>
+        <aside className={`sidebar left-sidebar ${workspacePanelOpen ? "mobile-panel-open" : ""}`}>
           <section className="side-section workspace-section">
             <div className="section-heading">WORKSPACE</div>
             <form className="workspace-form" onSubmit={createSession}>
@@ -459,12 +503,12 @@ function App() {
               <span>EXPLORER</span>
               <div>
                 <button className="tiny-button" title="Create file (approval required)" onClick={createFile} disabled={!sessionId}><FilePlus2 size={14} /></button>
-                <button className="tiny-button" title="Refresh file tree" onClick={() => refreshSession(sessionId)} disabled={!sessionId}><RefreshCw size={13} /></button>
+                <button className="tiny-button" title="Refresh file tree" aria-label="Refresh file tree" onClick={() => refreshSession(sessionId).catch((cause) => setError(cause.message))} disabled={!sessionId}><RefreshCw size={13} /></button>
               </div>
             </div>
             <form className="search-box" onSubmit={search}>
               <Search size={14} />
-              <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Search in workspace…" disabled={!sessionId} />
+              <input aria-label="Search in workspace" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Search in workspace…" disabled={!sessionId} />
               {searchResults && <button type="button" className="tiny-button" onClick={() => setSearchResults(null)} title="Clear search"><X size={13} /></button>}
             </form>
             <div className="file-tree">
@@ -503,6 +547,7 @@ function App() {
             </div>
             <div className="editor-actions">
               {activePath && <button className="toolbar-button danger-quiet" onClick={proposeDelete} title="Request file deletion"><Trash2 size={14} /></button>}
+              {activePath && <span className={`save-status ${hasUnsavedChanges ? "unsaved" : "saved"}`} role="status">{hasUnsavedChanges ? "Unsaved changes" : "Saved"}</span>}
               <button className="toolbar-button" onClick={saveFile} disabled={!activePath || saving} title="Save through approval">
                 {saving ? <LoaderCircle className="spin" size={14} /> : <Check size={14} />} Save
               </button>
@@ -554,9 +599,9 @@ function App() {
           </section>
         </main>
 
-        <aside className="sidebar right-sidebar">
+        <aside className={`sidebar right-sidebar ${agentPanelOpen ? "mobile-panel-open" : ""}`}>
           <section className="agent-header">
-            <div className="agent-title"><div className="agent-pulse"><Activity size={14} /></div><div><strong>AI Agent</strong><span>Powered by your configured model</span></div></div>
+            <div className="agent-title"><div className="agent-pulse"><Activity size={14} /></div><div><strong>AI Agent</strong><span>{health === "online" ? "Powered by your configured model" : "Connect the backend to start a task"}</span></div></div>
             <span className={`run-state ${activeTask ? "running" : ""}`}>{activeTask ? <><LoaderCircle size={12} className="spin" /> Working</> : <><Circle size={7} /> Ready</>}</span>
           </section>
           <section className="agent-config">
@@ -595,10 +640,10 @@ function App() {
             )}
           </div>
           <form className="chat-compose" onSubmit={submitTask}>
-            <textarea value={taskInput} onChange={(event) => setTaskInput(event.target.value)} onKeyDown={(event) => {
+            <textarea aria-label="Coding task" value={taskInput} onChange={(event) => setTaskInput(event.target.value)} onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form.requestSubmit(); }
             }} placeholder={sessionId ? "Describe your coding task…" : "Open a workspace to start"} disabled={!sessionId || Boolean(activeTask)} rows={3} />
-            <div className="compose-footer"><span><Command size={12} /> Enter to send · Shift+Enter for newline</span><button type="submit" className="send-button" disabled={!sessionId || !taskInput.trim() || loading || Boolean(activeTask)} title="Start task"><Send size={15} /></button></div>
+            <div className="compose-footer"><span><Command size={12} /> Enter to send · Shift+Enter for newline</span><button type="submit" className="send-button" aria-label="Start coding task" disabled={!sessionId || !taskInput.trim() || loading || Boolean(activeTask)} title="Start task"><Send size={15} /></button></div>
           </form>
           <section className="agent-progress">
             <div className="section-heading">TASK PROGRESS</div>
@@ -614,7 +659,7 @@ function App() {
         <div><span>{activePath ? languageFor(activePath) : "Ready"}</span><span>UTF-8</span><span>DevPilot 0.1</span></div>
       </footer>
 
-      {(error || notice) && <div className={`toast ${error ? "error" : "success"}`} role="status"><span>{error ? <AlertCircle size={15} /> : <Check size={15} />}{error || notice}</span><button onClick={() => { setError(""); setNotice(""); }} aria-label="Dismiss notification"><X size={14} /></button></div>}
+      {(error || notice) && <div className={`toast ${error ? "error" : "success"}`} role={error ? "alert" : "status"}><span>{error ? <AlertCircle size={15} /> : <Check size={15} />}{error || notice}</span><button onClick={() => { setError(""); setNotice(""); }} aria-label="Dismiss notification"><X size={14} /></button></div>}
     </div>
   );
 }

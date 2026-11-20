@@ -653,13 +653,18 @@ def create_app(database_path: Path | None = None, *, enforce_loopback: bool = Tr
     db_path = database_path or Path(
         os.getenv("DEVPILOT_DB_PATH", Path.home() / ".devpilot" / "sessions.sqlite3")
     )
+    allowed_origins = {
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        os.getenv("DEVPILOT_FRONTEND_ORIGIN", "http://127.0.0.1:5173"),
+    }
     store = EventStore(db_path)
     service = DevPilotService(store)
     application = FastAPI(title="DevPilot API", version="0.1.0")
     application.state.service = service
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_origins=list(allowed_origins),
         allow_credentials=False,
         allow_methods=["GET", "POST", "PUT"],
         allow_headers=["Content-Type"],
@@ -801,7 +806,7 @@ def create_app(database_path: Path | None = None, *, enforce_loopback: bool = Tr
             await websocket.close(code=1008, reason="Session not found.")
             return
         origin = websocket.headers.get("origin")
-        if origin and origin not in {"http://localhost:5173", "http://127.0.0.1:5173"}:
+        if origin and origin not in allowed_origins:
             await websocket.close(code=1008, reason="Origin is not allowed.")
             return
         await websocket.accept()

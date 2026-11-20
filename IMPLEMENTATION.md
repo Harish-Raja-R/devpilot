@@ -44,6 +44,7 @@ The original `mini` command is unchanged. For example, `mini --help` and the ups
 | `DEVPILOT_MODEL_NAME` | unset | LiteLLM provider/model name used for tasks |
 | `DEVPILOT_HOST` | `127.0.0.1` | Must be a loopback address |
 | `DEVPILOT_PORT` | `8000` | Backend port |
+| `DEVPILOT_FRONTEND_ORIGIN` | `http://127.0.0.1:5173` | Additional allowed frontend origin for API and WebSocket requests |
 | `DEVPILOT_DB_PATH` | `%USERPROFILE%\.devpilot\sessions.sqlite3` | Session, task, and event database |
 | `DEVPILOT_AGENT_MAX_ITERATIONS` | `30` | Agent model-turn limit (1–200) |
 | `DEVPILOT_COMMAND_TIMEOUT` | `60` | Approved command timeout in seconds (1–300) |
